@@ -10,11 +10,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../Store/auth/adminSlice";
 
 const navigation = [
-  { name: "DashBoard", href: "/" },
+  { name: "DashBoard", href: "/admin" },
   { name: "Users", href: "/users" },
   { name: "Products", href: "/products" },
   { name: "Orders", href: "/orders" },
-  {name: "Blog", href: "/allBlog"}
+  { name: "Blog", href: "/allBlog" },
 ];
 
 function classNames(...classes) {
