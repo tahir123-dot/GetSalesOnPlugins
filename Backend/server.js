@@ -9,7 +9,8 @@ import addressRoutes from "./routes/Address/addressRoutes.js";
 import orderRoutes from "./routes/Order/orderRoutes.js";
 import blogRoutes from "./routes/Blog/blogRoutes.js";
 import adminBlogRoutes from "./routes/Blog/adminBlogRouter.js";
-import downloadRoutes from "./routes/Order/downloadRoutes.js"
+import downloadRoutes from "./routes/Order/downloadRoutes.js";
+import feedBackRoutes from "./routes/FeedBack/FeedBackRoutes.js";
 
 const app = express();
 app.use(cors());
@@ -28,6 +29,7 @@ app.use("/user", addressRoutes);
 app.use("/user", orderRoutes);
 app.use("/user", blogRoutes);
 app.use("/user", downloadRoutes);
+app.use("/user", feedBackRoutes);
 
 app.listen(PORT, () => {
   console.log("Server Runing on this Port :", PORT);
