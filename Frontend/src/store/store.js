@@ -17,6 +17,7 @@ import filterReducer from "../store/product/filterSlice";
 import blogReducer from "../store/Blog/blogSlice";
 import wishlistReducer from "../store/product/whishSlice";
 import downloadReducer from "../store/Download/downloadSlice";
+import feedBackReducer from "./FeedBack/FeedBackSlice";
 
 const store = configureStore({
   reducer: {
@@ -38,6 +39,7 @@ const store = configureStore({
     blog: blogReducer,
     Wishlist: wishlistReducer,
     download: downloadReducer,
+    feedback: feedBackReducer,
   },
 });
 
