@@ -37,6 +37,7 @@ const Nav = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userId");
     dispatch(logout());
     navigate("/");
   };
