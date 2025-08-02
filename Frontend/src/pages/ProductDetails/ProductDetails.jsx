@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Star } from "lucide-react";
+import { Star, X } from "lucide-react";
 import Subheading from "../../component/Subheading";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -8,6 +8,7 @@ import Product from "../../component/Product/Product";
 import getSingleProductApi from "../../store/product/getSingleProductApi.js";
 import { addToCartApi } from "../../store/Cart/cartAddApi.js";
 import getUserCartApi from "../../store/Cart/getUserCartApi.js";
+import { createFeedBack } from "../../store/FeedBack/feedBackApi";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -15,10 +16,36 @@ const ProductDetails = () => {
 
   const { product, loading } = useSelector((state) => state.singleProduct);
   const user = localStorage.getItem("userId");
+  const [feedback, setFeedBack] = useState(null);
 
   const [activeTab, setActiveTab] = useState("description");
   const [quantity, setQuantity] = useState(1);
   const [selectedOS, setSelectedOS] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [description, setDescription] = useState("");
+
+  const feedBackPopup = () => {
+    if (user) {
+      setFeedBack(true);
+    } else {
+      alert("please login for give feedback");
+    }
+  };
+
+  const handleSubmit = () => {
+    const data = {
+      userId: user,
+      productId: product._id,
+      description,
+      rating,
+    };
+
+    dispatch(createFeedBack(data));
+
+    setDescription("");
+    setRating(0);
+    setFeedBack(false);
+  };
 
   useEffect(() => {
     dispatch(getSingleProductApi(id));
@@ -45,7 +72,7 @@ const ProductDetails = () => {
     }
   };
 
-  const renderStars = (rating) => {
+  const renderStars = (ratingg) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
@@ -54,7 +81,7 @@ const ProductDetails = () => {
           className={`w-4 h-4 ${
             i <= rating ? "text-yellow-500" : "text-gray-300"
           }`}
-          fill={i <= rating ? "#facc15" : "none"}
+          fill={i <= ratingg ? "#facc15" : "none"}
         />
       );
     }
@@ -67,7 +94,7 @@ const ProductDetails = () => {
       <div className="text-center py-10 text-red-600">Product not found.</div>
     );
 
-  const rating = 4;
+  const ratingg = 3;
   const totalReviews = 12;
   const reviewsList = [
     {
@@ -112,7 +139,7 @@ const ProductDetails = () => {
           <h2 className="text-3xl font-bold">{product.name}</h2>
 
           <div className="flex items-center gap-2">
-            <div className="flex">{renderStars(rating)}</div>
+            <div className="flex">{renderStars(ratingg)}</div>
             <span className="text-gray-500 text-sm">
               ({totalReviews} reviews)
             </span>
@@ -197,6 +224,69 @@ const ProductDetails = () => {
               <li>Category: {product.category}</li>
             </ul>
           )}
+
+          {/* feed back section bro check this okay  */}
+          <div>
+            <td className="p-3 whitespace-nowrap">
+              <button
+                className="text-indigo-600 hover:underline cursor-pointer"
+                onClick={feedBackPopup}
+              >
+                Give Feedback
+              </button>
+            </td>
+
+            {feedback ? (
+              <>
+                <div className="fixed inset-0 z-50  bg-opacity-0 flex items-center justify-center">
+                  <div className="relative bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-md">
+                    {/* Close Icon */}
+                    <button
+                      onClick={() => setFeedBack(false)}
+                      className="absolute top-3 right-3 text-gray-400 hover:text-red-500 cursor-pointer"
+                    >
+                      <X size={20} />
+                    </button>
+
+                    {/* Star Icon */}
+                    <div className="flex justify-center mb-4">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="px-2">
+                          <Star
+                            onClick={() => setRating(i + 1)}
+                            className={
+                              i < rating ? "text-yellow-400" : "text-gray-400"
+                            }
+                            fill={i < rating ? "#facc15" : "none"}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Description Textarea */}
+                    <div className="mb-4">
+                      <textarea
+                        rows="5"
+                        placeholder="Write your feedback..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        required
+                      ></textarea>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                      className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+                      onClick={handleSubmit}
+                    >
+                      Submit Feedback
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </div>
 
           {activeTab === "reviews" && (
             <div className="space-y-4">
