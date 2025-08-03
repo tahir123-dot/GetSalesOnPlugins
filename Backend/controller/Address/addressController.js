@@ -40,7 +40,6 @@ export const getUserAddress = async (req, res) => {
     console.log(userId);
     const address = await Address.findOne({ user: userId });
 
-
     if (!address) {
       return res.status(404).json({ message: "No address found" });
     }

@@ -50,7 +50,7 @@ const getProductFeedbacks = async (req, res) => {
 
   try {
     const feedbacks = await Feedback.find({ product: productId })
-      .populate("user", "name")
+      .populate("user", "username")
       .sort({ placedAt: -1 });
 
     res.status(200).json(feedbacks);

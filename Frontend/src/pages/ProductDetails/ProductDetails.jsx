@@ -3,17 +3,27 @@ import { useParams } from "react-router-dom";
 import { Star, X } from "lucide-react";
 import Subheading from "../../component/Subheading";
 import { useDispatch, useSelector } from "react-redux";
-
+import { toast } from "react-toastify";
 import Product from "../../component/Product/Product";
 import getSingleProductApi from "../../store/product/getSingleProductApi.js";
 import { addToCartApi } from "../../store/Cart/cartAddApi.js";
 import getUserCartApi from "../../store/Cart/getUserCartApi.js";
-import { createFeedBack } from "../../store/FeedBack/feedBackApi";
+import { createFeedBack } from "../../store/FeedBack/feedBackApi.js";
+import { resetFeedBackState } from "../../store/FeedBack/FeedBackSlice.js";
+import { getReviews } from "../../store/FeedBack/getFeedBackApi.js";
+import { resetFeedBackData } from "../../store/FeedBack/getFeedBackSlice.js";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  // data get karny py
+  const { fetchSuccess, fetchError, data } = useSelector(
+    (state) => state.getFeedBack
+  );
 
+  const { successFeed } = useSelector((state) => state.feedback);
+
+  // data get karny py single product ka
   const { product, loading } = useSelector((state) => state.singleProduct);
   const user = localStorage.getItem("userId");
   const [feedback, setFeedBack] = useState(null);
@@ -28,7 +38,7 @@ const ProductDetails = () => {
     if (user) {
       setFeedBack(true);
     } else {
-      alert("please login for give feedback");
+      toast.warning("please login for give feedback");
     }
   };
 
@@ -48,12 +58,14 @@ const ProductDetails = () => {
   };
 
   useEffect(() => {
-    dispatch(getSingleProductApi(id));
+    if (id) {
+      dispatch(getSingleProductApi(id));
+    }
   }, [dispatch, id]);
 
   const AddTOCart = async () => {
     if (!selectedOS) {
-      alert("Please select an operating system before adding to cart.");
+      toast.warn("Please select an operating system before adding to cart.");
       return;
     }
 
@@ -88,239 +100,254 @@ const ProductDetails = () => {
     return stars;
   };
 
-  if (loading) return <div className="text-center py-10">Loading...</div>;
-  if (!product)
-    return (
-      <div className="text-center py-10 text-red-600">Product not found.</div>
-    );
+  useEffect(() => {
+    if (id) {
+      dispatch(getReviews(id));
+    }
+  }, [dispatch, id]);
 
-  const ratingg = 3;
-  const totalReviews = 12;
-  const reviewsList = [
-    {
-      userId: "user1",
-      name: "Ali",
-      imgUser: "A",
-      description: "Great plugin, works like magic!",
-      rating: 5,
-    },
-    {
-      userId: "user2",
-      name: "Sara",
-      imgUser: "S",
-      description: "Good quality and free!",
-      rating: 4,
-    },
-  ];
+  let sum = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    sum += data[i].rating;
+  }
+
+  const ratingg = data.length > 0 ? sum / data.length : 0;
+
+  const totalReviews = data.length;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-        <div className="w-full">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="rounded-lg object-cover w-full h-[400px] lg:h-[500px]"
-          />
-        </div>
+    <>
+      {loading ? (
+        <div className="text-center py-10">Loading...</div>
+      ) : !product ? (
+        <div className="text-center py-10 text-red-600">Product not found.</div>
+      ) : (
+        <>
+          <div className="max-w-7xl mx-auto px-4 py-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+              <div className="w-full">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="rounded-lg object-cover w-full h-[400px] lg:h-[500px]"
+                />
+              </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            {product.isFree && (
-              <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
-                Free Downloads
-              </span>
-            )}
-            <span className="text-gray-500 text-sm capitalize">
-              {product.category}
-            </span>
-          </div>
-
-          <h2 className="text-3xl font-bold">{product.name}</h2>
-
-          <div className="flex items-center gap-2">
-            <div className="flex">{renderStars(ratingg)}</div>
-            <span className="text-gray-500 text-sm">
-              ({totalReviews} reviews)
-            </span>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-2">System Requirements:</h3>
-            <p className="text-sm text-gray-600 whitespace-pre-wrap">
-              {product.shortDescription}
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-2">Operating System</h2>
-            <div className="flex flex-wrap gap-6">
-              {product.device?.map((item, i) => (
-                <label
-                  key={i}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="operatingSystem"
-                    value={item}
-                    onChange={(e) => setSelectedOS(e.target.value)}
-                    checked={selectedOS === item}
-                    className="form-radio text-blue-600"
-                  />
-                  <span className="text-sm text-gray-700">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="text-2xl font-bold text-gray-800">
-            Price: {product.isFree ? "Free" : `$${product.price}`}
-          </div>
-
-          <div className="mt-4 flex flex-row items-center gap-4">
-            <input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              className="w-24 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
-            />
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg shadow transition duration-300 text-sm"
-              onClick={AddTOCart}
-            >
-              Add to Cart
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs Section */}
-      <div className="mt-12">
-        <div className="flex gap-6 border-b">
-          {["description", "specification", "reviews"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 capitalize border-b-2 ${
-                activeTab === tab
-                  ? "border-blue-600 text-blue-600 font-semibold"
-                  : "border-transparent text-gray-500"
-              } transition duration-200`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6 text-sm text-gray-700">
-          {activeTab === "description" && <p>{product.description}</p>}
-
-          {activeTab === "specification" && (
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Brand: {product.brand}</li>
-              <li>Device: {product.device.join(", ")}</li>
-              <li>Category: {product.category}</li>
-            </ul>
-          )}
-
-          {/* feed back section bro check this okay  */}
-          <div>
-            <td className="p-3 whitespace-nowrap">
-              <button
-                className="text-indigo-600 hover:underline cursor-pointer"
-                onClick={feedBackPopup}
-              >
-                Give Feedback
-              </button>
-            </td>
-
-            {feedback ? (
-              <>
-                <div className="fixed inset-0 z-50  bg-opacity-0 flex items-center justify-center">
-                  <div className="relative bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-md">
-                    {/* Close Icon */}
-                    <button
-                      onClick={() => setFeedBack(false)}
-                      className="absolute top-3 right-3 text-gray-400 hover:text-red-500 cursor-pointer"
-                    >
-                      <X size={20} />
-                    </button>
-
-                    {/* Star Icon */}
-                    <div className="flex justify-center mb-4">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="px-2">
-                          <Star
-                            onClick={() => setRating(i + 1)}
-                            className={
-                              i < rating ? "text-yellow-400" : "text-gray-400"
-                            }
-                            fill={i < rating ? "#facc15" : "none"}
-                          />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Description Textarea */}
-                    <div className="mb-4">
-                      <textarea
-                        rows="5"
-                        placeholder="Write your feedback..."
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        required
-                      ></textarea>
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
-                      className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
-                      onClick={handleSubmit}
-                    >
-                      Submit Feedback
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : null}
-          </div>
-
-          {activeTab === "reviews" && (
-            <div className="space-y-4">
-              {reviewsList.map((item) => (
-                <div
-                  key={item.userId}
-                  className="border p-3 rounded-md bg-gray-50"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
-                      {item.imgUser}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  {product.isFree && (
+                    <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
+                      Free Downloads
                     </span>
-                    <h4 className="font-semibold">{item.name}</h4>
-                  </div>
-                  <p className="text-sm text-gray-700">{item.description}</p>
-                  <div className="flex mt-1">{renderStars(item.rating)}</div>
+                  )}
+                  <span className="text-gray-500 text-sm capitalize">
+                    {product.category}
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Related Products */}
-      <div className="mt-16">
-        <Subheading
-          subHeading=""
-          mainHeading="Related Products"
-          description="Explore our top-rated production tools."
-          view={false}
-        />
-        <Product limit={4} />
-      </div>
-    </div>
+                <h2 className="text-3xl font-bold">{product.name}</h2>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex">{renderStars(ratingg)}</div>
+                  <span className="text-gray-500 text-sm">
+                    ({totalReviews} reviews)
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">System Requirements:</h3>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {product.shortDescription}
+                  </p>
+                </div>
+
+                <div className="mt-6">
+                  <h2 className="text-lg font-semibold mb-2">
+                    Operating System
+                  </h2>
+                  <div className="flex flex-wrap gap-6">
+                    {product.device?.map((item, i) => (
+                      <label
+                        key={i}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="radio"
+                          name="operatingSystem"
+                          value={item}
+                          onChange={(e) => setSelectedOS(e.target.value)}
+                          checked={selectedOS === item}
+                          className="form-radio text-blue-600"
+                        />
+                        <span className="text-sm text-gray-700">{item}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="text-2xl font-bold text-gray-800">
+                  Price: {product.isFree ? "Free" : `$${product.price}`}
+                </div>
+
+                <div className="mt-4 flex flex-row items-center gap-4">
+                  <input
+                    type="number"
+                    min={1}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    className="w-24 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+                  />
+                  <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg shadow transition duration-300 text-sm"
+                    onClick={AddTOCart}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs Section */}
+            <div className="mt-12">
+              <div className="flex gap-6 border-b">
+                {["description", "specification", "reviews"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`pb-2 capitalize border-b-2 ${
+                      activeTab === tab
+                        ? "border-blue-600 text-blue-600 font-semibold"
+                        : "border-transparent text-gray-500"
+                    } transition duration-200`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 text-sm text-gray-700">
+                {activeTab === "description" && <p>{product.description}</p>}
+
+                {activeTab === "specification" && (
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Brand: {product.brand}</li>
+                    <li>Device: {product.device.join(", ")}</li>
+                    <li>Category: {product.category}</li>
+                  </ul>
+                )}
+
+                {/* feed back section bro check this okay  */}
+                <div>
+                  <div className="p-3 whitespace-nowrap">
+                    <button
+                      className="text-indigo-600 hover:underline cursor-pointer"
+                      onClick={feedBackPopup}
+                    >
+                      Give Feedback
+                    </button>
+                  </div>
+
+                  {feedback ? (
+                    <>
+                      <div className="fixed inset-0 z-50  bg-opacity-0 flex items-center justify-center">
+                        <div className="relative bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-md">
+                          {/* Close Icon */}
+                          <button
+                            onClick={() => setFeedBack(false)}
+                            className="absolute top-3 right-3 text-gray-400 hover:text-red-500 cursor-pointer"
+                          >
+                            <X size={20} />
+                          </button>
+
+                          {/* Star Icon */}
+                          <div className="flex justify-center mb-4">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <div key={i} className="px-2">
+                                <Star
+                                  onClick={() => setRating(i + 1)}
+                                  className={
+                                    i < rating
+                                      ? "text-yellow-400"
+                                      : "text-gray-400"
+                                  }
+                                  fill={i < rating ? "#facc15" : "none"}
+                                />
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Description Textarea */}
+                          <div className="mb-4">
+                            <textarea
+                              rows="5"
+                              placeholder="Write your feedback..."
+                              value={description}
+                              onChange={(e) => setDescription(e.target.value)}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              required
+                            ></textarea>
+                          </div>
+
+                          {/* Submit Button */}
+                          <button
+                            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+                            onClick={handleSubmit}
+                          >
+                            Submit Feedback
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+
+                {activeTab === "reviews" && (
+                  <div className="space-y-4">
+                    {data && data.length > 0 ? (
+                      data.map((item) => (
+                        <div
+                          key={item._id}
+                          className="border p-3 rounded-md bg-gray-50"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
+                              {item.user?.username?.charAt(0).toUpperCase()}
+                            </span>
+                            <h4 className="font-semibold">
+                              {item.user?.username}
+                            </h4>
+                          </div>
+                          <p className="text-sm text-gray-700">
+                            {item.description}
+                          </p>
+                          <div className="flex mt-1">
+                            {renderStars(item.rating)}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500">No reviews yet.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Related Products */}
+            <div className="mt-16">
+              <Subheading
+                subHeading=""
+                mainHeading="Related Products"
+                description="Explore our top-rated production tools."
+                view={false}
+              />
+              <Product limit={4} />
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 };
 

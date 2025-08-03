@@ -6,7 +6,7 @@ import {
 
 const router = express.Router();
 
-router.post("add/feedBack/product", addFeedBack);
-router.get("add/feedback/get", getProductFeedbacks);
+router.post("/add/feedBack/product", addFeedBack);
+router.get("/add/feedback/get/:productId", getProductFeedbacks);
 
 export default router;

@@ -28,6 +28,7 @@ const registerSlice = createSlice({
         state.loading = false;
         state.success = true;
         localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("userId",action.payload.user._id);
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {

@@ -18,6 +18,7 @@ import blogReducer from "../store/Blog/blogSlice";
 import wishlistReducer from "../store/product/whishSlice";
 import downloadReducer from "../store/Download/downloadSlice";
 import feedBackReducer from "./FeedBack/FeedBackSlice";
+import getFeedBackReducer from "./FeedBack/getFeedBackSlice";
 
 const store = configureStore({
   reducer: {
@@ -40,7 +41,11 @@ const store = configureStore({
     Wishlist: wishlistReducer,
     download: downloadReducer,
     feedback: feedBackReducer,
+    getFeedBack: getFeedBackReducer,
   },
 });
 
 export default store;
+
+
+
