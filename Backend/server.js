@@ -11,6 +11,8 @@ import blogRoutes from "./routes/Blog/blogRoutes.js";
 import adminBlogRoutes from "./routes/Blog/adminBlogRouter.js";
 import downloadRoutes from "./routes/Order/downloadRoutes.js";
 import feedBackRoutes from "./routes/FeedBack/FeedBackRoutes.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(cors());
